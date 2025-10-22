@@ -96,7 +96,7 @@
         document.getElementById('createActivityForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const adminId = document.getElementById('adminId').value;
+            const adminId = parseInt(document.getElementById('adminId').value);
             const name = document.getElementById('name').value;
             const description = document.getElementById('description').value;
             const startTime = document.getElementById('startTime').value;
