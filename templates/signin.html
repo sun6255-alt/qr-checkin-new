@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In for Activity: {{ activity.name }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .signin-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="signin-container">
+        <h2 class="text-center mb-4">Sign In for {{ activity.name }}</h2>
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="studentIdNumber">Student ID Number</label>
+                <input type="text" class="form-control" id="studentIdNumber" name="student_id_number" required>
+            </div>
+            <div class="form-group">
+                <label for="studentName">Name</label>
+                <input type="text" class="form-control" id="studentName" name="student_name" required>
+            </div>
+            <div class="form-group">
+                <label for="studentEmail">Email</label>
+                <input type="email" class="form-control" id="studentEmail" name="student_email">
+            </div>
+            <div class="form-group">
+                <label for="studentDepartment">Department</label>
+                <input type="text" class="form-control" id="studentDepartment" name="student_department">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+        <div id="message" class="alert d-none" role="alert"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const activityId = {{ activity.id }};
+            const messageDiv = $('#message');
+
+            $('#signinForm').submit(function(event) {
+                event.preventDefault();
+
+                const studentIdNumber = $('#studentIdNumber').val();
+                const studentName = $('#studentName').val();
+                const studentEmail = $('#studentEmail').val();
+                const studentDepartment = $('#studentDepartment').val();
+
+                $.ajax({
+                    url: '/api/checkin',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        activity_id: activityId,
+                        student_id_number: studentIdNumber,
+                        student_name: studentName,
+                        student_email: studentEmail,
+                        student_department: studentDepartment
+                    }),
+                    success: function(response) {
+                        messageDiv.removeClass('d-none alert-danger').addClass('alert-success').text(response.message);
+                        $('#signinForm')[0].reset();
+                    },
+                    error: function(xhr, status, error) {
+                        const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred';
+                        messageDiv.removeClass('d-none alert-success').addClass('alert-danger').text(errorMessage);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -158,6 +158,13 @@ def create_activity():
         }
     }), 201
 
+@app.route('/activity/<int:activity_id>/signin')
+def signin_page(activity_id):
+    activity = Activity.query.get(activity_id)
+    if not activity:
+        return render_template('404.html'), 404 # You might want to create a 404.html template
+    return render_template('signin.html', activity=activity)
+
 @app.route('/api/checkin', methods=['POST'])
 def check_in():
     data = request.get_json()
@@ -165,27 +172,38 @@ def check_in():
         return jsonify({'message': 'Invalid JSON data'}), 400
 
     activity_id = data.get('activity_id')
-    student_id = data.get('student_id')
+    student_id_number = data.get('student_id_number')
+    student_name = data.get('student_name')
+    student_email = data.get('student_email')
+    student_department = data.get('student_department')
 
-    if not all([activity_id, student_id]):
-        return jsonify({'message': 'Missing required fields (activity_id, student_id)'}), 400
+    if not all([activity_id, student_id_number, student_name]):
+        return jsonify({'message': 'Missing required fields (activity_id, student_id_number, student_name)'}), 400
 
     activity = Activity.query.get(activity_id)
     if not activity:
         return jsonify({'message': 'Activity not found'}), 404
 
-    student = Student.query.get(student_id)
+    student = Student.query.filter_by(student_id_number=student_id_number).first()
     if not student:
-        return jsonify({'message': 'Student not found'}), 404
+        # Create new student if not found
+        student = Student(
+            student_id_number=student_id_number,
+            name=student_name,
+            email=student_email,
+            department=student_department
+        )
+        db.session.add(student)
+        db.session.commit()
 
     # Check if student has already checked in for this activity
-    existing_check_in = CheckIn.query.filter_by(activity_id=activity_id, student_id=student_id).first()
+    existing_check_in = CheckIn.query.filter_by(activity_id=activity_id, student_id=student.id).first()
     if existing_check_in:
         return jsonify({'message': 'Student already checked in for this activity'}), 409
 
     new_check_in = CheckIn(
         activity_id=activity_id,
-        student_id=student_id,
+        student_id=student.id,
         check_in_time=datetime.datetime.now(),
         check_in_method='QR_CODE' # Assuming QR code scan for now
     )
