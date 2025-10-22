@@ -195,13 +195,7 @@ def check_in():
         }
     }), 201
 
-@app.route('/')
-def index():
-    return redirect(url_for('create_activity_page'))
 
-@app.route('/create-activity')
-def create_activity_page():
-    return render_template('activity_create.html')
 
 if __name__ == '__main__':
     with app.app_context():
