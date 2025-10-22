@@ -141,7 +141,7 @@ def create_activity():
     db.session.commit()
 
     # Generate QR Code after activity is committed to get its ID
-    qr_data = f'{request.host_url.rstrip('/')}activity/{new_activity.id}/signin' # Absolute URL to signin page
+    qr_data = url_for('signin_page', activity_id=new_activity.id, _external=True)
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
