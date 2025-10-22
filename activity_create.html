@@ -73,19 +73,19 @@
         <h1>創建活動</h1>
         <form id="createActivityForm">
             <label for="adminId">Admin ID:</label>
-            <input type="text" id="adminId" name="admin_id" required>
+            <input type="text" id="adminId" name="admin_id" autocomplete="off" required>
 
             <label for="name">活動名稱:</label>
-            <input type="text" id="name" name="name" required>
+            <input type="text" id="name" name="name" autocomplete="name" required>
 
             <label for="description">活動簡述:</label>
-            <textarea id="description" name="description" rows="4"></textarea>
+            <textarea id="description" name="description" autocomplete="off" rows="4"></textarea>
 
             <label for="startTime">開始日期:</label>
-            <input type="datetime-local" id="startTime" name="start_time" required>
+            <input type="datetime-local" id="startTime" name="start_time" autocomplete="off" required>
 
             <label for="endTime">結束日期:</label>
-            <input type="datetime-local" id="endTime" name="end_time" required>
+            <input type="datetime-local" id="endTime" name="end_time" autocomplete="off" required>
 
             <button type="submit">創建活動</button>
         </form>
