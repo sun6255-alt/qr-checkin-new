@@ -1,9 +1,9 @@
 import os
 import uuid
 import qrcode
-from flask import Flask, render_template, request, jsonify
+import datetime
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask import render_template, redirect, url_for
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@localhost/mydatabase')
