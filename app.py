@@ -2,6 +2,8 @@ import os
 import uuid
 import qrcode
 import datetime
+import io
+import base64
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -64,7 +66,7 @@ class CheckIn(db.Model):
     def __repr__(self):
         return f'<CheckIn {self.activity_id}-{self.student_id}>'
 
-def generate_qr_code(data, filename):
+def generate_qr_code(data):
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -75,9 +77,10 @@ def generate_qr_code(data, filename):
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="black", back_color="white")
-    filepath = os.path.join(app.root_path, 'static', filename)
-    img.save(filepath)
-    return f'/static/{filename}'
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{img_str}"
 
 
 @app.route('/')
@@ -87,6 +90,7 @@ def home():
 @app.route('/create-activity')
 def create_activity_page():
     return render_template('activity_create.html')
+
 
 @app.route('/api/activities', methods=['POST'])
 def create_activity():
@@ -105,10 +109,16 @@ def create_activity():
         return jsonify({'message': 'Missing required fields'}), 400
 
     try:
+        # Attempt to parse as ISO format first (e.g., YYYY-MM-DDTHH:MM:SS)
         start_time = datetime.datetime.fromisoformat(start_time_str)
         end_time = datetime.datetime.fromisoformat(end_time_str)
     except ValueError:
-        return jsonify({'message': 'Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)'}), 400
+        try:
+            # If ISO format fails, try parsing as YYYY-MM-DD
+            start_time = datetime.datetime.strptime(start_time_str, '%Y-%m-%d')
+            end_time = datetime.datetime.strptime(end_time_str, '%Y-%m-%d')
+        except ValueError:
+            return jsonify({'message': 'Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS) or YYYY-MM-DD'}), 400
 
     # Check if administrator exists
     admin = Administrator.query.get(created_by)
@@ -129,10 +139,9 @@ def create_activity():
 
     # Generate QR Code after activity is committed to get its ID
     qr_data = f'http://your-app-domain.onrender.com/checkin/{new_activity.id}' # Placeholder URL
-    qr_filename = f'qr_activity_{new_activity.id}_{uuid.uuid4()}.png'
-    qr_code_url = generate_qr_code(qr_data, qr_filename)
+    qr_code_base64 = generate_qr_code(qr_data)
 
-    new_activity.qr_code_url = qr_code_url
+    new_activity.qr_code_url = qr_code_base64
     db.session.commit()
 
     return jsonify({
