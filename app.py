@@ -33,7 +33,7 @@ class Activity(db.Model):
     location = db.Column(db.String(120))
     created_by = db.Column(db.Integer, db.ForeignKey('administrators.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    qr_code_url = db.Column(db.String(255))
+    qr_code_url = db.Column(db.Text)
 
     creator = db.relationship('Administrator', backref='activities')
     check_ins = db.relationship('CheckIn', backref='activity', lazy=True)
