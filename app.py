@@ -12,8 +12,10 @@ import os
 app = Flask(__name__)
 
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
-    app.config['SERVER_NAME'] = os.environ['RENDER_EXTERNAL_HOSTNAME']
-    app.config['PREFERRED_URL_SCHEME'] = 'https'
+    app.config['APP_BASE_URL'] = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}"
+else:
+    app.config['APP_BASE_URL'] = "http://127.0.0.1:5000" # Default for local development
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@localhost/mydatabase')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -147,7 +149,7 @@ def create_activity():
     db.session.commit()
 
     # Generate QR Code after activity is committed to get its ID
-    qr_data = f'{request.scheme}://{request.host}/activity/{new_activity.id}/signin' # Absolute URL to signin page
+    qr_data = f"{app.config['APP_BASE_URL']}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
