@@ -48,6 +48,9 @@ class Student(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True)
     department = db.Column(db.String(120))
+    birthday = db.Column(db.Date)
+    unit = db.Column(db.String(120))
+    title = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     check_ins = db.relationship('CheckIn', backref='student', lazy=True)
@@ -176,6 +179,9 @@ def check_in():
     student_name = data.get('student_name')
     student_email = data.get('student_email')
     student_department = data.get('student_department')
+    student_birthday_str = data.get('student_birthday')
+    student_unit = data.get('student_unit')
+    student_title = data.get('student_title')
 
     if not all([activity_id, student_id_number, student_name]):
         return jsonify({'message': 'Missing required fields (activity_id, student_id_number, student_name)'}), 400
@@ -191,7 +197,10 @@ def check_in():
             student_id_number=student_id_number,
             name=student_name,
             email=student_email,
-            department=student_department
+            department=student_department,
+            birthday=datetime.datetime.strptime(student_birthday_str, '%Y-%m-%d').date() if student_birthday_str else None,
+            unit=student_unit,
+            title=student_title
         )
         db.session.add(student)
         db.session.commit()
@@ -221,8 +230,6 @@ def check_in():
             'check_in_method': new_check_in.check_in_method
         }
     }), 201
-
-
 
 if __name__ == '__main__':
     with app.app_context():
