@@ -48,6 +48,9 @@ class Student(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True)
     department = db.Column(db.String(120))
+    birthday = db.Column(db.Date)
+    unit = db.Column(db.String(120))
+    title = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     check_ins = db.relationship('CheckIn', backref='student', lazy=True)
@@ -138,7 +141,7 @@ def create_activity():
     db.session.commit()
 
     # Generate QR Code after activity is committed to get its ID
-    qr_data = f'http://your-app-domain.onrender.com/checkin/{new_activity.id}' # Placeholder URL
+    qr_data = f'{request.url_root}activity/{new_activity.id}/signin' # Absolute URL to signin page
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
@@ -158,6 +161,13 @@ def create_activity():
         }
     }), 201
 
+@app.route('/activity/<int:activity_id>/signin')
+def signin_page(activity_id):
+    activity = Activity.query.get(activity_id)
+    if not activity:
+        return render_template('404.html'), 404 # You might want to create a 404.html template
+    return render_template('signin.html', activity=activity)
+
 @app.route('/api/checkin', methods=['POST'])
 def check_in():
     data = request.get_json()
@@ -165,27 +175,44 @@ def check_in():
         return jsonify({'message': 'Invalid JSON data'}), 400
 
     activity_id = data.get('activity_id')
-    student_id = data.get('student_id')
+    student_id_number = data.get('student_id_number')
+    student_name = data.get('student_name')
+    student_email = data.get('student_email')
+    student_department = data.get('student_department')
+    student_birthday_str = data.get('student_birthday')
+    student_unit = data.get('student_unit')
+    student_title = data.get('student_title')
 
-    if not all([activity_id, student_id]):
-        return jsonify({'message': 'Missing required fields (activity_id, student_id)'}), 400
+    if not all([activity_id, student_id_number, student_name]):
+        return jsonify({'message': 'Missing required fields (activity_id, student_id_number, student_name)'}), 400
 
     activity = Activity.query.get(activity_id)
     if not activity:
         return jsonify({'message': 'Activity not found'}), 404
 
-    student = Student.query.get(student_id)
+    student = Student.query.filter_by(student_id_number=student_id_number).first()
     if not student:
-        return jsonify({'message': 'Student not found'}), 404
+        # Create new student if not found
+        student = Student(
+            student_id_number=student_id_number,
+            name=student_name,
+            email=student_email,
+            department=student_department,
+            birthday=datetime.datetime.strptime(student_birthday_str, '%Y-%m-%d').date() if student_birthday_str else None,
+            unit=student_unit,
+            title=student_title
+        )
+        db.session.add(student)
+        db.session.commit()
 
     # Check if student has already checked in for this activity
-    existing_check_in = CheckIn.query.filter_by(activity_id=activity_id, student_id=student_id).first()
+    existing_check_in = CheckIn.query.filter_by(activity_id=activity_id, student_id=student.id).first()
     if existing_check_in:
         return jsonify({'message': 'Student already checked in for this activity'}), 409
 
     new_check_in = CheckIn(
         activity_id=activity_id,
-        student_id=student_id,
+        student_id=student.id,
         check_in_time=datetime.datetime.now(),
         check_in_method='QR_CODE' # Assuming QR code scan for now
     )
@@ -203,8 +230,6 @@ def check_in():
             'check_in_method': new_check_in.check_in_method
         }
     }), 201
-
-
 
 if __name__ == '__main__':
     with app.app_context():
