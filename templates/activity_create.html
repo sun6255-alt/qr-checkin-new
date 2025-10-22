@@ -92,8 +92,10 @@
         <div id="message" class="message" style="display: none;"></div>
         <div id="qrCodeDisplay" style="text-align: center; margin-top: 20px; display: none;">
             <h2>生成的 QR Code:</h2>
-            <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
-            <p><a id="qrCodeLink" href="" target="_blank">點擊查看原始 QR Code 圖片</a></p>
+            <a id="qrCodeImageLink" href="" target="_blank">
+                <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
+            </a>
+            <p><a id="qrCodeLink" href="" target="_blank">點擊前往簽到頁面</a></p>
             <button id="goHomeButton" style="margin-top: 10px;">返回首頁</button>
         </div>
     </div>
@@ -139,10 +141,9 @@
 
                 qrCodeDisplayDiv.style.display = 'block';
                 qrCodeImage.src = data.activity.qr_code_url;
-                qrCodeLink.href = data.activity.qr_code_url;
-
-                // Redirect to the sign-in page for the newly created activity
-                window.location.href = `/activity/${data.activity.id}/signin`;
+                const signinPageUrl = `/activity/${data.activity.id}/signin`;
+                qrCodeImageLink.href = signinPageUrl;
+                qrCodeLink.href = signinPageUrl;
 
             } else {
                 const errorData = await response.json();
