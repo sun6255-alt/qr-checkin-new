@@ -141,9 +141,8 @@
                 qrCodeImage.src = data.activity.qr_code_url;
                 qrCodeLink.href = data.activity.qr_code_url;
 
-                goHomeButton.onclick = function() {
-                    window.location.href = '/'; // Navigate to home page
-                };
+                // Redirect to the sign-in page for the newly created activity
+                window.location.href = `/activity/${data.activity.id}/signin`;
 
             } else {
                 const errorData = await response.json();
