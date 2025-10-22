@@ -7,7 +7,13 @@ import base64
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
+import os
+# ... existing code ...
 app = Flask(__name__)
+
+if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
+    app.config['SERVER_NAME'] = os.environ['RENDER_EXTERNAL_HOSTNAME']
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@localhost/mydatabase')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
