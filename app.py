@@ -141,7 +141,7 @@ def create_activity():
     db.session.commit()
 
     # Generate QR Code after activity is committed to get its ID
-    qr_data = f'http://your-app-domain.onrender.com/checkin/{new_activity.id}' # Placeholder URL
+    qr_data = f'/activity/{new_activity.id}/signin' # Relative URL to signin page
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
@@ -175,6 +175,7 @@ def check_in():
         return jsonify({'message': 'Invalid JSON data'}), 400
 
     activity_id = data.get('activity_id')
+    print(f"Received activity_id for check-in: {activity_id}") # Debugging line
     student_id_number = data.get('student_id_number')
     student_name = data.get('student_name')
     student_email = data.get('student_email')
