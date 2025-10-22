@@ -8,7 +8,14 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 import os
-# ... existing code ...
+@app.route('/debug-qr/<int:activity_id>')
+def debug_qr(activity_id):
+    if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
+        app_base_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}"
+    else:
+        app_base_url = "http://127.0.0.1:5000"
+    qr_data = f"{app_base_url}/activity/{activity_id}/signin"
+    return f"Generated QR Data: {qr_data}"
 app = Flask(__name__)
 
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
