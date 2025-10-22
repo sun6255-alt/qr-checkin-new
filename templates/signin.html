@@ -63,7 +63,7 @@
                 <label for="studentEmail">Email</label>
                 <input type="email" class="form-control" id="studentEmail" name="student_email">
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            <button type="submit" class="btn btn-primary btn-block">簽到</button>
         </form>
         <div id="message" class="alert d-none" role="alert"></div>
     </div>
@@ -102,12 +102,12 @@
                         student_title: studentTitle
                     }),
                     success: function(response) {
-                        messageDiv.removeClass('d-none alert-danger').addClass('alert-success').text(response.message);
+                        messageDiv.removeClass('d-none alert-danger').addClass('alert-success').text(response.message).show();
                         $('#signinForm')[0].reset();
                     },
                     error: function(xhr, status, error) {
                         const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred';
-                        messageDiv.removeClass('d-none alert-success').addClass('alert-danger').text(errorMessage);
+                        messageDiv.removeClass('d-none alert-success').addClass('alert-danger').text(errorMessage).show();
                     }
                 });
             });
