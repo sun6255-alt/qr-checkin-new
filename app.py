@@ -111,11 +111,9 @@ def home():
 def create_activity_page():
     return render_template('activity_create.html')
 
-logging.basicConfig(level=logging.INFO)
-
 @app.route('/api/activities', methods=['POST'])
 def create_activity():
-    logging.info(f"request.url_root: {request.url_root}")
+    app.logger.info(f"request.url_root: {request.url_root}")
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Invalid JSON data'}), 400
