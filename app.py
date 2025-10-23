@@ -27,8 +27,6 @@ else:
     app_base_url = "http://127.0.0.1:5000" # Default local URL
 
 app.config['APP_BASE_URL'] = app_base_url
-app.logger.info(f"RENDER_EXTERNAL_HOSTNAME: {render_external_hostname}") # Add this line
-app.logger.info(f"Configured APP_BASE_URL: {app.config['APP_BASE_URL']}") # Add this line
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///checkin.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -152,7 +150,6 @@ def create_activity():
     # app.logger.debug(f"request.url_root: {request.url_root}")
     # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app_base_url = app.config['APP_BASE_URL']
-    app.logger.info(f"APP_BASE_URL from config: {app_base_url}") # Add this line
     qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app.logger.debug(f"QR Code data generated: {qr_data}")
 
