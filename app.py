@@ -174,7 +174,8 @@ def create_activity():
             'end_time': new_activity.end_time.isoformat(),
             'location': new_activity.location,
             'created_by': new_activity.created_by,
-            'qr_code_url': new_activity.qr_code_url
+            'qr_code_url': new_activity.qr_code_url,
+        'qr_data': qr_data # Add qr_data to the response
         }
     }), 201
 
