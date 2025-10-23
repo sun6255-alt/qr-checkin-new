@@ -4,87 +4,77 @@ import qrcode
 import datetime
 import io
 import base64
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+import io
+import datetime
 import logging
 
-import os
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 
-@app.route('/debug-qr/<int:activity_id>')
-def debug_qr(activity_id):
-    if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
-        app_base_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}"
-    else:
-        app_base_url = "http://127.0.0.1:5000"
-    qr_data = f"{app_base_url}/activity/{activity_id}/signin"
-    return f"Generated QR Data: {qr_data}"
-
-if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
-    app.config['APP_BASE_URL'] = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}"
+# Determine the base URL for QR code generation
+# For Render, RENDER_EXTERNAL_HOSTNAME is provided
+render_external_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_external_hostname:
+    app_base_url = f"https://{render_external_hostname}"
 else:
-    app.config['APP_BASE_URL'] = "http://127.0.0.1:5000" # Default for local development
+    # Fallback for local development or other environments
+    app_base_url = "http://127.0.0.1:5000" # Default local URL
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@localhost/mydatabase')
+app.config['APP_BASE_URL'] = app_base_url
+app.logger.info(f"RENDER_EXTERNAL_HOSTNAME: {render_external_hostname}") # Add this line
+app.logger.info(f"Configured APP_BASE_URL: {app.config['APP_BASE_URL']}") # Add this line
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///checkin.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 
-class Administrator(db.Model):
-    __tablename__ = 'administrators'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-    def __repr__(self):
-        return f'<Administrator {self.username}>'
-
+# Models
 class Activity(db.Model):
-    __tablename__ = 'activities'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
-    location = db.Column(db.String(120))
-    created_by = db.Column(db.Integer, db.ForeignKey('administrators.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    qr_code_url = db.Column(db.Text)
+    location = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now)
+    created_by = db.Column(db.Integer, db.ForeignKey('administrator.id'), nullable=False)
+    qr_code_url = db.Column(db.Text, nullable=True) # Store base64 encoded QR code image
 
-    creator = db.relationship('Administrator', backref='activities')
-    check_ins = db.relationship('CheckIn', backref='activity', lazy=True)
+    admin = db.relationship('Administrator', backref='activities')
 
-    def __repr__(self):
-        return f'<Activity {self.name}>'
+class Administrator(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
 
 class Student(db.Model):
-    __tablename__ = 'students'
     id = db.Column(db.Integer, primary_key=True)
-    student_id_number = db.Column(db.String(80), unique=True)
-    name = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), unique=True)
-    department = db.Column(db.String(120))
-    birthday = db.Column(db.Date)
-    unit = db.Column(db.String(120))
-    title = db.Column(db.String(120))
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-    check_ins = db.relationship('CheckIn', backref='student', lazy=True)
-
-    def __repr__(self):
-        return f'<Student {self.name}>'
+    student_id_number = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=True)
+    department = db.Column(db.String(100), nullable=True)
+    birthday = db.Column(db.Date, nullable=True)
+    unit = db.Column(db.String(100), nullable=True)
+    title = db.Column(db.String(100), nullable=True)
 
 class CheckIn(db.Model):
-    __tablename__ = 'check_ins'
     id = db.Column(db.Integer, primary_key=True)
-    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    check_in_time = db.Column(db.DateTime, default=db.func.current_timestamp())
-    check_in_method = db.Column(db.String(50), default='QR_CODE')
+    activity_id = db.Column(db.Integer, db.ForeignKey('activity.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    check_in_time = db.Column(db.DateTime, default=datetime.datetime.now)
+    check_in_method = db.Column(db.String(50), nullable=True) # e.g., 'QR_CODE', 'MANUAL'
 
-    def __repr__(self):
-        return f'<CheckIn {self.activity_id}-{self.student_id}>'
+    activity = db.relationship('Activity', backref='check_ins')
+    student = db.relationship('Student', backref='check_ins')
+
+    __table_args__ = (db.UniqueConstraint('activity_id', 'student_id', name='_activity_student_uc'),)
 
 def generate_qr_code(data):
     qr = qrcode.QRCode(
@@ -113,8 +103,7 @@ def create_activity_page():
 
 @app.route('/api/activities', methods=['POST'])
 def create_activity():
-    base_url = f"{request.scheme}://{request.host}"
-    app.logger.info(f"request.scheme: {request.scheme}, request.host: {request.host}, Constructed base_url: {base_url}")
+    # app.logger.info(f"request.scheme: {request.scheme}, request.host: {request.host}, Constructed base_url: {base_url}")
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Invalid JSON data'}), 400
@@ -166,6 +155,7 @@ def create_activity():
     app.logger.info(f"APP_BASE_URL from config: {app_base_url}") # Add this line
     qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app.logger.debug(f"QR Code data generated: {qr_data}")
+
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
