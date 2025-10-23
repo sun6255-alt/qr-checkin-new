@@ -113,7 +113,8 @@ def create_activity_page():
 
 @app.route('/api/activities', methods=['POST'])
 def create_activity():
-    app.logger.info(f"request.url_root: {request.url_root}")
+    base_url = f"{request.scheme}://{request.host}"
+    app.logger.info(f"request.scheme: {request.scheme}, request.host: {request.host}, Constructed base_url: {base_url}")
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Invalid JSON data'}), 400
@@ -159,8 +160,10 @@ def create_activity():
 
     # Generate QR Code after activity is committed to get its ID
     # Use request.url_root to get the absolute base URL dynamically
-    app.logger.debug(f"request.url_root: {request.url_root}")
-    qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
+    # app.logger.debug(f"request.url_root: {request.url_root}")
+    # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
+    app_base_url = app.config['APP_BASE_URL']
+    qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app.logger.debug(f"QR Code data generated: {qr_data}")
     qr_code_base64 = generate_qr_code(qr_data)
 
