@@ -158,6 +158,7 @@ def create_activity():
 
     # Generate QR Code after activity is committed to get its ID
     qr_data = f"{app.config['APP_BASE_URL']}/activity/{new_activity.id}/signin" # Absolute URL to signin page
+    app.logger.debug(f"QR Code data generated: {qr_data}")
     qr_code_base64 = generate_qr_code(qr_data)
 
     new_activity.qr_code_url = qr_code_base64
