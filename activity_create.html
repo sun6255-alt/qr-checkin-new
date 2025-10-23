@@ -95,6 +95,7 @@
             <a id="qrCodeImageLink" href="" target="_blank">
                 <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; height: auto; border: 1px solid #ddd; padding: 5px;">
             </a>
+            <p id="displayedQrData" style="word-break: break-all;"></p> <!-- New line to display qr_data -->
             <p><a id="qrCodeLink" href="" target="_blank">點擊前往簽到頁面</a></p>
             <button id="goHomeButton" style="margin-top: 10px;">返回首頁</button>
         </div>
@@ -128,6 +129,7 @@
             const qrCodeDisplayDiv = document.getElementById('qrCodeDisplay');
             const qrCodeImage = document.getElementById('qrCodeImage');
             const qrCodeLink = document.getElementById('qrCodeLink');
+            const displayedQrData = document.getElementById('displayedQrData'); // Get the new element
             const goHomeButton = document.getElementById('goHomeButton');
 
             messageDiv.style.display = 'block';
@@ -145,6 +147,13 @@
                 qrCodeImageLink.href = signinPageUrl;
                 qrCodeLink.href = signinPageUrl;
 
+                // Display the actual qr_data from the backend
+                if (data.activity.qr_data) {
+                    displayedQrData.textContent = `QR Code 內容: ${data.activity.qr_data}`;
+                } else {
+                    displayedQrData.textContent = `QR Code 內容: 未提供`;
+                }
+
             } else {
                 const errorData = await response.json();
                 messageDiv.className = 'message error';
@@ -155,3 +164,4 @@
     </script>
 </body>
 </html>
+<!-- Version: 2025-10-23 11:45:00 -->
