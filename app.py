@@ -152,9 +152,10 @@ def create_activity():
     # Use request.url_root to get the absolute base URL dynamically
     # app.logger.debug(f"request.url_root: {request.url_root}")
     # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
-    app_base_url = app.config['APP_BASE_URL']
-    qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
-    print(f"QR Code data generated: {qr_data}") # Changed to print statement
+    # app_base_url = app.config['APP_BASE_URL']
+    app_base_url_hardcoded = "https://qr-checkin-new.onrender.com"
+    qr_data = f"{app_base_url_hardcoded}/activity/{new_activity.id}/signin" # Absolute URL to signin page
+    # print(f"QR Code data generated: {qr_data}") # Removed print statement
 
     qr_code_base64 = generate_qr_code(qr_data)
 
