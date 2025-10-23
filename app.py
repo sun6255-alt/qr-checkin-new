@@ -95,7 +95,7 @@ def generate_qr_code(data):
     qr.add_data(data)
     qr.make(fit=True)
 
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qrcode.make_image(fill_color="black", back_color="white")
     buffered = io.BytesIO()
     img.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
@@ -158,6 +158,7 @@ def create_activity():
 
     # Generate QR Code after activity is committed to get its ID
     # Use request.url_root to get the absolute base URL dynamically
+    app.logger.debug(f"request.url_root: {request.url_root}")
     qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app.logger.debug(f"QR Code data generated: {qr_data}")
     qr_code_base64 = generate_qr_code(qr_data)
