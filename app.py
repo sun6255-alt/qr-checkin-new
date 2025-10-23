@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO) # Explicitly set Flask app logger level
 
 # Determine the base URL for QR code generation
 # For Render, RENDER_EXTERNAL_HOSTNAME is provided
@@ -153,7 +154,7 @@ def create_activity():
     # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app_base_url = app.config['APP_BASE_URL']
     qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
-    app.logger.debug(f"QR Code data generated: {qr_data}") # Re-add this line
+    print(f"QR Code data generated: {qr_data}") # Changed to print statement
 
     qr_code_base64 = generate_qr_code(qr_data)
 
