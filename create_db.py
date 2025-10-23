@@ -1,7 +1,8 @@
 from app import app, db, Administrator
 
 with app.app_context():
-    db.create_all()
+    db.drop_all()  # Drop all existing tables
+    db.create_all() # Create tables based on updated models
 
     # Create a default administrator if none exists
     if not Administrator.query.filter_by(username='admin').first():

@@ -163,6 +163,7 @@ def create_activity():
     # app.logger.debug(f"request.url_root: {request.url_root}")
     # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app_base_url = app.config['APP_BASE_URL']
+    app.logger.info(f"APP_BASE_URL from config: {app_base_url}") # Add this line
     qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app.logger.debug(f"QR Code data generated: {qr_data}")
     qr_code_base64 = generate_qr_code(qr_data)
