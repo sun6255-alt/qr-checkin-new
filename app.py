@@ -19,12 +19,14 @@ app = Flask(__name__)
 
 # Determine the base URL for QR code generation
 # For Render, RENDER_EXTERNAL_HOSTNAME is provided
-render_external_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if render_external_hostname:
-    app_base_url = f"https://{render_external_hostname}"
-else:
-    # Fallback for local development or other environments
-    app_base_url = "http://127.0.0.1:5000" # Default local URL
+# render_external_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+# if render_external_hostname:
+#     app_base_url = f"https://{render_external_hostname}"
+# else:
+#     # Fallback for local development or other environments
+#     app_base_url = "http://127.0.0.1:5000" # Default local URL
+
+app_base_url = "https://qr-checkin-new.onrender.com" # Hardcode for Render deployment
 
 app.config['APP_BASE_URL'] = app_base_url
 
@@ -151,7 +153,7 @@ def create_activity():
     # qr_data = f"{request.url_root.rstrip('/')}/activity/{new_activity.id}/signin" # Absolute URL to signin page
     app_base_url = app.config['APP_BASE_URL']
     qr_data = f"{app_base_url}/activity/{new_activity.id}/signin" # Absolute URL to signin page
-    app.logger.debug(f"QR Code data generated: {qr_data}")
+    app.logger.debug(f"QR Code data generated: {qr_data}") # Re-add this line
 
     qr_code_base64 = generate_qr_code(qr_data)
 
